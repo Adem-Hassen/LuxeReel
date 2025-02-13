@@ -38,3 +38,18 @@ def get_recommendation(user_id,top_k=5):
     sorted_movies_idx = [int(idx) for idx in sorted_movies_idx]
     top_movies=movies[movies["movieId"].isin(sorted_movies_idx)].to_dict(orient="records")
     return top_movies
+
+def get_top_movies(top_n=10, min_ratings=50):
+    ratings=pd.read_csv("../Recommendation_System/dataset/ratings.csv")
+    movies=pd.read_csv("../Recommendation_System/dataset/movies.csv")
+    movie_counts = ratings.groupby("movieId")["rating"].agg(["mean", "count"]).reset_index()
+    
+
+    filtered_movies = movie_counts[movie_counts["count"] >= min_ratings]
+
+ 
+    filtered_movies = filtered_movies.merge(movies, on="movieId")
+    
+    top_movies = filtered_movies.sort_values(by="mean", ascending=False).head(top_n)
+    
+    return top_movies.to_dict(orient="records")

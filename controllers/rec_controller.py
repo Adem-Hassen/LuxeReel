@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from models.models import RecRequest
-from services.rec_services import get_recommendation
+from services.rec_services import get_recommendation,get_top_movies
 
 rec_router = APIRouter(prefix="/api/recommend",tags=["Recommendation"])
 
@@ -12,3 +12,9 @@ def get_recommendations(request:RecRequest):
         return {"message": "User ID is required"}
     movies=get_recommendation(user_id,num_recs)
     return {"user_Id": user_id, "recommendations": movies}
+
+
+@rec_router.get("/get_top_movies")
+def get_best_movies():
+    top_movies=get_top_movies(top_n=5)
+    return {"top_movies":top_movies}
