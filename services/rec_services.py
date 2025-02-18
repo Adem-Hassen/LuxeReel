@@ -1,7 +1,9 @@
 from models.models import RecModel
+from database.database import db
 import pandas as pd
 import torch
 import pickle
+import numpy as np
 
 def load_model():
     with open("../Recommendation_System/label_encoders.pkl", "rb") as f:
@@ -53,3 +55,21 @@ def get_top_movies(top_n=10, min_ratings=50):
     top_movies = filtered_movies.sort_values(by="mean", ascending=False).head(top_n)
     
     return top_movies.to_dict(orient="records")
+
+async def fetch_all_movies(limit=12,skip=0):
+    cursor = db["movies_listings"].find().skip(skip).limit(limit)
+    movies= await cursor.to_list(length=limit)
+    return movies
+
+async def fetch_filtred_movies(title,genre, year, skip, limit):
+    query = {"$and":[]}
+    if title:
+        query["$and"].append({"title": {"$regex": title, "$options": "i"}})
+    if genre:
+        query["$and"].append({"genres": {"$regex": genre, "$options": "i"}})
+    if year:
+        query["$and"].append({"title": {"$regex": f"\({year}\)", "$options": "i"}})
+    total_movies = await db["movies_listings"].count_documents(query)
+    cursor = db["movies_listings"].find(query).skip(skip).limit(limit)
+    movies = await cursor.to_list(length=limit)
+    return movies,total_movies
